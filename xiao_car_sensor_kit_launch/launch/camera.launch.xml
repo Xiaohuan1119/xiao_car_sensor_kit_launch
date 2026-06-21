@@ -1,26 +1,23 @@
 <launch>
   <arg name="launch_driver" default="true"/>
-  <arg name="camera_type" default="left"/>
+  <arg name="video_device" default="/dev/video0"/>
+  <arg name="image_width" default="640"/>
+  <arg name="image_height" default="480"/>
+  <arg name="framerate" default="30.0"/>
+  <arg name="pixel_format" default="mjpeg2rgb"/>
+  <arg name="camera_frame_id" default="camera_front/camera_link"/>
 
-  <group>
-    <push-ros-namespace namespace="camera"/>
-    <group>
-      <push-ros-namespace namespace="traffic_light"/>
+  <group if="$(var launch_driver)">
+    <node pkg="usb_cam" exec="usb_cam_node_exe" name="camera_front" output="screen">
+      <param name="video_device" value="$(var video_device)"/>
+      <param name="image_width" value="$(var image_width)"/>
+      <param name="image_height" value="$(var image_height)"/>
+      <param name="framerate" value="$(var framerate)"/>
+      <param name="pixel_format" value="$(var pixel_format)"/>
+      <param name="camera_frame_id" value="$(var camera_frame_id)"/>
 
-      <!-- (usb_cam_node is assumed to have launched on logging PC) -->
-      <node pkg="topic_tools" exec="relay" name="tl_camera_info_relay" output="log">
-        <param name="input_topic" value="$(var camera_type)/camera_info"/>
-        <param name="output_topic" value="camera_info"/>
-        <param name="type" value="sensor_msgs/msg/CameraInfo"/>
-        <param name="reliability" value="best_effort"/>
-      </node>
-
-      <node pkg="topic_tools" exec="relay" name="tl_compressed_image_relay" output="log">
-        <param name="input_topic" value="$(var camera_type)/image_raw/compressed"/>
-        <param name="output_topic" value="image_raw/compressed"/>
-        <param name="type" value="sensor_msgs/msg/CompressedImage"/>
-        <param name="reliability" value="best_effort"/>
-      </node>
-    </group>
+      <remap from="image_raw" to="/camera/camera_front/image_raw"/>
+      <remap from="camera_info" to="/camera/camera_front/camera_info"/>
+    </node>
   </group>
 </launch>
